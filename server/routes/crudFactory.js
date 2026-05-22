@@ -1,7 +1,16 @@
 const express = require('express');
 const { Op } = require('sequelize');
 const authMiddleware = require('../middleware/auth');
-const { queryAI } = require('../services/openRouterService');
+const { aiRateLimiter } = require('../middleware/rateLimiter');
+const { queryAI, queryAIStructured } = require('../services/openRouterService');
+
+// Admin-only middleware
+function adminRequired(req, res, next) {
+  if (req.user && req.user.role === 'admin') {
+    return next();
+  }
+  return res.status(403).json({ error: 'Admin role required for this operation.' });
+}
 
 function createCrudRoutes(Model, modelName, aiPromptPrefix) {
   const router = express.Router();
@@ -58,7 +67,7 @@ function createCrudRoutes(Model, modelName, aiPromptPrefix) {
   }
 
   // AI Query (general) - must be before /:id routes
-  router.post('/ai/query', authMiddleware, async (req, res) => {
+  router.post('/ai/query', authMiddleware, aiRateLimiter, async (req, res) => {
     try {
       const { prompt, context } = req.body;
       const fullPrompt = `${aiPromptPrefix}\n\n${prompt}`;
@@ -149,7 +158,6 @@ function createCrudRoutes(Model, modelName, aiPromptPrefix) {
           let val = item[h];
           if (val === null || val === undefined) return '';
           if (typeof val === 'object') val = JSON.stringify(val);
-          // Escape quotes and wrap in quotes if contains comma, quote, or newline
           const str = String(val);
           if (str.includes(',') || str.includes('"') || str.includes('\n')) {
             return `"${str.replace(/"/g, '""')}"`;
@@ -182,8 +190,8 @@ function createCrudRoutes(Model, modelName, aiPromptPrefix) {
     }
   });
 
-  // Bulk delete
-  router.post('/bulk/delete', authMiddleware, async (req, res) => {
+  // Bulk delete — admin role required
+  router.post('/bulk/delete', authMiddleware, adminRequired, async (req, res) => {
     try {
       const { ids } = req.body;
       if (!ids || !Array.isArray(ids) || ids.length === 0) {
@@ -297,7 +305,6 @@ function createCrudRoutes(Model, modelName, aiPromptPrefix) {
       delete data.createdAt;
       delete data.updatedAt;
 
-      // Append " (Copy)" to name or title field
       if (data.name) {
         data.name = data.name + ' (Copy)';
       } else if (data.title) {
@@ -311,19 +318,47 @@ function createCrudRoutes(Model, modelName, aiPromptPrefix) {
     }
   });
 
-  // AI Analysis
-  router.post('/:id/analyze', authMiddleware, async (req, res) => {
+  // AI Analysis — returns structured JSON with summary, risk_level, recommendations, confidence_score
+  router.post('/:id/analyze', authMiddleware, aiRateLimiter, async (req, res) => {
     try {
       const item = await Model.findByPk(req.params.id);
       if (!item) return res.status(404).json({ error: `${modelName} not found` });
 
       const itemData = item.toJSON();
-      const prompt = `${aiPromptPrefix}\n\nAnalyze this ${modelName}:\n${JSON.stringify(itemData, null, 2)}\n\nProvide:\n1. Detailed technical analysis\n2. Strengths and weaknesses\n3. Optimization suggestions\n4. Potential applications\n5. Risk assessment\n6. Recommended next steps`;
+      const prompt = `${aiPromptPrefix}
 
-      const aiResult = await queryAI(prompt);
+Analyze this ${modelName}:
+${JSON.stringify(itemData, null, 2)}
 
-      await item.update({ aiAnalysis: aiResult });
-      res.json({ item, aiResult });
+Return a structured JSON analysis with EXACTLY this format:
+{
+  "summary": "Concise 2-3 sentence technical summary",
+  "risk_level": "low|medium|high|critical",
+  "strengths": ["strength 1", "strength 2"],
+  "weaknesses": ["weakness 1", "weakness 2"],
+  "recommendations": [
+    {"priority": "high|medium|low", "action": "specific recommendation", "rationale": "why this matters"}
+  ],
+  "confidence_score": 0.85,
+  "technical_details": "Detailed technical analysis paragraph",
+  "next_steps": ["step 1", "step 2", "step 3"]
+}`;
+
+      const result = await queryAIStructured(prompt, '', {
+        systemPrompt: `${aiPromptPrefix} Return valid JSON only with the exact structure requested.`,
+        maxTokens: 2000,
+      });
+
+      if (!result.success) {
+        return res.status(500).json({ error: result.response });
+      }
+
+      const analysisData = result.parsed || { raw_response: result.response };
+
+      // Persist AI analysis to the record
+      await item.update({ aiAnalysis: analysisData });
+
+      res.json({ item, aiResult: { success: true, response: analysisData, model: result.model, usage: result.usage } });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

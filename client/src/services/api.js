@@ -83,4 +83,57 @@ export const getProfile = () => api.get('/auth/profile');
 export const updateProfile = (data) => api.put('/auth/profile', data);
 export const changePassword = (data) => api.put('/auth/profile/password', data);
 
+// ── New Quantum Features ──────────────────────────────────────────────────────
+
+// QASM Upload
+export const uploadQASM = (circuitId, file) => {
+  const formData = new FormData();
+  formData.append('qasm', file);
+  return api.post(`/circuit-designs/${circuitId}/upload-qasm`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+};
+
+// Quantum Simulator
+export const simulateCircuit = (circuitId) =>
+  api.post(`/quantum/simulate/${circuitId}`);
+
+// Hardware Transpiler Advisor
+export const transpileCircuit = (hardwareId, circuitId) =>
+  api.post(`/hardware-profiles/${hardwareId}/transpile/${circuitId}`);
+
+// Benchmark Runner
+export const runBenchmark = (benchmarkId) =>
+  api.post(`/benchmark-tests/${benchmarkId}/run`);
+
+// Research Paper Q&A
+export const askResearchPaper = (paperId, question) =>
+  api.post(`/research-papers/${paperId}/qa`, { question });
+
+// Global Quantum Query
+export const quantumQuery = (question, include_context = false) =>
+  api.post('/ai/quantum-query', { question, include_context });
+
+// Algorithm Explainer
+export const algorithmExplainer = (algorithm, audience_level) =>
+  api.post('/ai/algorithm-explainer', { algorithm, audience_level });
+
+// Optimization Problem Mapper
+export const optimizationProblemMapper = (problem_description) =>
+  api.post('/ai/optimization-problem-mapper', { problem_description });
+
+// Hardware Recommendation
+export const hardwareRecommendation = (algorithm, qubit_count, depth, priority) =>
+  api.post('/ai/hardware-recommendation', { algorithm, qubit_count, depth, priority });
+
+// ── Apply pass 4 — mechanical backlog ───────────────────────────────────────
+export const circuitGenerator = (problem_description, qubit_count, target_hardware, gate_set) =>
+  api.post('/ai/circuit-generator', { problem_description, qubit_count, target_hardware, gate_set });
+
+export const benchmarkAnalysis = (benchmark_results, hardware_filter) =>
+  api.post('/ai/benchmark-analysis', { benchmark_results, hardware_filter });
+
+export const errorMitigationAdvisor = (circuit_description, hardware, noise_profile, target_fidelity) =>
+  api.post('/ai/error-mitigation-advisor', { circuit_description, hardware, noise_profile, target_fidelity });
+
 export default api;

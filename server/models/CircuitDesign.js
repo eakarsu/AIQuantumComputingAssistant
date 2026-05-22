@@ -14,7 +14,9 @@ const CircuitDesign = sequelize.define('CircuitDesign', {
   complexity: { type: DataTypes.STRING },
   estimatedRuntime: { type: DataTypes.STRING },
   tags: { type: DataTypes.ARRAY(DataTypes.STRING), defaultValue: [] },
-  aiAnalysis: { type: DataTypes.JSONB }
+  aiAnalysis: { type: DataTypes.JSONB },
+  qasmContent: { type: DataTypes.TEXT },
+  qasmFilename: { type: DataTypes.STRING }
 }, { timestamps: true });
 
 module.exports = CircuitDesign;

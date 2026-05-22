@@ -22,6 +22,9 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiSettings,
+  FiMessageCircle,
+  FiRepeat,
+  FiTarget,
 } from 'react-icons/fi';
 
 const NAV_SECTIONS = [
@@ -64,6 +67,38 @@ const NAV_SECTIONS = [
       { name: 'Hardware Profiles', slug: '/feature/hardware-profiles', icon: FiServer, color: '#9945ff' },
       { name: 'Benchmark Tests', slug: '/feature/benchmark-tests', icon: FiBarChart2, color: '#ff9945' },
       { name: 'Learning Resources', slug: '/feature/learning-resources', icon: FiAward, color: '#00d4ff' },
+    ],
+  },
+  {
+    title: 'AI Tools',
+    items: [
+      { name: 'Quantum Query', slug: '/quantum-query', icon: FiMessageCircle, color: '#7b2ff7' },
+      { name: 'HW Transpiler', slug: '/hardware-transpiler', icon: FiRepeat, color: '#00d4ff' },
+      { name: 'Benchmark Runner', slug: '/benchmark-runner', icon: FiTarget, color: '#ff6b9d' },
+      { name: 'Algorithm Explainer', slug: '/algorithm-explainer', icon: FiBook, color: '#7b2ff7' },
+      { name: 'Optimization Mapper', slug: '/optimization-problem-mapper', icon: FiTrendingUp, color: '#9945ff' },
+      { name: 'HW Recommendation', slug: '/hardware-recommendation', icon: FiServer, color: '#9945ff' },
+      { name: 'Circuit Generator', slug: '/circuit-generator', icon: FiCpu, color: '#7b2ff7' },
+      { name: 'Benchmark Analysis', slug: '/benchmark-analysis', icon: FiBarChart2, color: '#ff9945' },
+      { name: 'Error Mitigation', slug: '/error-mitigation-advisor', icon: FiShield, color: '#00d4ff' },
+    ],
+  },
+  {
+    title: 'Gap Features',
+    items: [
+      { name: 'Algo Explainer Gap', slug: '/gap-no-algorithmexplainer-plainenglish-explanati', icon: FiBook, color: '#ff6b6b' },
+      { name: 'Circuit Generator Gap', slug: '/gap-no-circuitgenerator-from-problem-description', icon: FiCpu, color: '#ff6b6b' },
+      { name: 'Optimization Mapper Gap', slug: '/gap-no-optimizationproblemmapper-classical-quant', icon: FiTrendingUp, color: '#ff6b6b' },
+      { name: 'HW Recommendation Gap', slug: '/gap-no-hardwarerecommendation-ibm-ionq-rigetti-r', icon: FiServer, color: '#ff9945' },
+      { name: 'Benchmark Analysis Gap', slug: '/gap-no-benchmarkanalysis-across-providers', icon: FiBarChart2, color: '#ff9945' },
+      { name: 'Error Mitigation Gap', slug: '/gap-no-errormitigation-advisor', icon: FiShield, color: '#ff9945' },
+      { name: 'Circuit Diagram Gap', slug: '/gap-no-circuit-diagram-visualizationeditor', icon: FiEye, color: '#9945ff' },
+      { name: 'Quantum Simulator Gap', slug: '/gap-no-quantum-simulator-integration-qiskitcirqb', icon: FiPlay, color: '#9945ff' },
+      { name: 'Course Structure Gap', slug: '/gap-no-educational-courselesson-structure', icon: FiAward, color: '#9945ff' },
+      { name: 'Benchmarking Store Gap', slug: '/gap-no-benchmarking-framework-or-result-store', icon: FiActivity, color: '#00d4ff' },
+      { name: 'HW Credentials Gap', slug: '/gap-no-hardware-provider-accountcredential-mgmt', icon: FiLayers, color: '#00d4ff' },
+      { name: 'Circuit Library Gap', slug: '/gap-no-saved-circuits-sharing-or-library', icon: FiGrid, color: '#00d4ff' },
+      { name: 'Notifications/RBAC Gap', slug: '/gap-no-notifications-or-rbac', icon: FiZap, color: '#7b2ff7' },
     ],
   },
 ];

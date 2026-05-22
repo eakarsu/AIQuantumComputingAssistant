@@ -14,6 +14,9 @@ import {
   bulkUpdate,
   duplicateItem,
   getStats,
+  uploadQASM,
+  simulateCircuit,
+  askResearchPaper,
 } from '../services/api';
 import Modal from '../components/Modal';
 import AIResponsePanel from '../components/AIResponsePanel';
@@ -38,6 +41,8 @@ import {
   FiArrowDown,
   FiColumns,
   FiBarChart2,
+  FiPlay,
+  FiHelpCircle,
 } from 'react-icons/fi';
 
 const FEATURE_CONFIG = {
@@ -395,6 +400,23 @@ function FeaturePage() {
   const [aiQueryText, setAiQueryText] = useState('');
   const [analyzeTarget, setAnalyzeTarget] = useState(null);
 
+  // QASM Upload (circuit-design only)
+  const qasmInputRef = useRef(null);
+  const [qasmLoading, setQasmLoading] = useState(false);
+
+  // Simulator
+  const [showSimulator, setShowSimulator] = useState(false);
+  const [simulateLoading, setSimulateLoading] = useState(false);
+  const [simulateResult, setSimulateResult] = useState(null);
+  const [simulateError, setSimulateError] = useState('');
+
+  // Research Paper Q&A
+  const [showPaperQA, setShowPaperQA] = useState(false);
+  const [paperQuestion, setPaperQuestion] = useState('');
+  const [paperQALoading, setPaperQALoading] = useState(false);
+  const [paperQAResult, setPaperQAResult] = useState(null);
+  const [paperQAError, setPaperQAError] = useState('');
+
   const fetchItems = useCallback(async () => {
     if (!config) return;
     setLoading(true);
@@ -453,6 +475,14 @@ function FeaturePage() {
     setSortOrder('DESC');
     setStats(null);
     setShowStats(false);
+    // Reset new feature states
+    setShowSimulator(false);
+    setSimulateResult(null);
+    setSimulateError('');
+    setShowPaperQA(false);
+    setPaperQuestion('');
+    setPaperQAResult(null);
+    setPaperQAError('');
   }, [featureName]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
@@ -731,6 +761,59 @@ function FeaturePage() {
     }
   };
 
+  // QASM Upload handler
+  const handleQASMUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !selectedItem) return;
+    setQasmLoading(true);
+    try {
+      await uploadQASM(selectedItem.id, file);
+      addToast('QASM file uploaded successfully', 'success');
+      fetchItems();
+    } catch (err) {
+      addToast(err.response?.data?.error || 'QASM upload failed.', 'error');
+    } finally {
+      setQasmLoading(false);
+      e.target.value = '';
+    }
+  };
+
+  // Simulate circuit handler
+  const handleSimulate = async (item) => {
+    setShowSimulator(true);
+    setSelectedItem(item);
+    setSimulateLoading(true);
+    setSimulateResult(null);
+    setSimulateError('');
+    setShowDetailModal(true);
+    try {
+      const res = await simulateCircuit(item.id);
+      setSimulateResult(res.data);
+      addToast('Simulation complete!', 'success');
+    } catch (err) {
+      setSimulateError(err.response?.data?.error || 'Simulation failed.');
+    } finally {
+      setSimulateLoading(false);
+    }
+  };
+
+  // Research Paper Q&A handler
+  const handlePaperQA = async (e) => {
+    e.preventDefault();
+    if (!paperQuestion.trim() || !selectedItem) return;
+    setPaperQALoading(true);
+    setPaperQAResult(null);
+    setPaperQAError('');
+    try {
+      const res = await askResearchPaper(selectedItem.id, paperQuestion.trim());
+      setPaperQAResult(res.data);
+    } catch (err) {
+      setPaperQAError(err.response?.data?.error || 'Q&A failed.');
+    } finally {
+      setPaperQALoading(false);
+    }
+  };
+
   if (!config) {
     return (
       <div className="page-container">
@@ -984,9 +1067,86 @@ function FeaturePage() {
               <button className="btn btn-ai" onClick={() => handleAnalyze(selectedItem)} disabled={aiLoading}>
                 {aiLoading ? <span className="btn-loading"><span className="spinner-small" /> Analyzing...</span> : <><FiZap /> AI Analyze</>}
               </button>
+              {/* Circuit Design specific: QASM upload + simulate */}
+              {featureName === 'circuit-design' && (
+                <>
+                  <button className="btn btn-secondary" onClick={() => qasmInputRef.current?.click()} disabled={qasmLoading}>
+                    {qasmLoading ? <span className="btn-loading"><span className="spinner-small" /> Uploading...</span> : <><FiUpload /> Upload QASM</>}
+                  </button>
+                  <input ref={qasmInputRef} type="file" accept=".qasm,.txt" onChange={handleQASMUpload} style={{ display: 'none' }} />
+                  <button className="btn btn-secondary" style={{ background: '#e0f2fe', color: '#0369a1' }} onClick={() => handleSimulate(selectedItem)} disabled={simulateLoading}>
+                    {simulateLoading ? <span className="btn-loading"><span className="spinner-small" /> Simulating...</span> : <><FiPlay /> Simulate</>}
+                  </button>
+                </>
+              )}
+              {/* Research Paper specific: Q&A */}
+              {featureName === 'research-papers' && (
+                <button className="btn btn-secondary" style={{ background: '#f0fdf4', color: '#166534' }} onClick={() => { setShowPaperQA(!showPaperQA); setPaperQAResult(null); setPaperQAError(''); }}>
+                  <FiHelpCircle /> Paper Q&A
+                </button>
+              )}
               <button className="btn btn-danger" onClick={() => setShowDeleteConfirm(true)}><FiTrash2 /> Delete</button>
             </div>
             {(aiLoading || aiResponse || aiError) && <AIResponsePanel response={aiResponse} loading={aiLoading} error={aiError} />}
+
+            {/* Simulator Results (circuit-design) */}
+            {featureName === 'circuit-design' && showSimulator && (
+              <div style={{ marginTop: '1rem', padding: '1rem', background: '#0f172a', borderRadius: '8px', color: '#e2e8f0' }}>
+                <h4 style={{ color: '#7b2ff7', margin: '0 0 0.75rem' }}>Quantum Simulator Results</h4>
+                {simulateLoading && <div style={{ color: '#94a3b8' }}>Simulating circuit...</div>}
+                {simulateError && <div style={{ color: '#f87171' }}>{simulateError}</div>}
+                {simulateResult?.simulation_result && (
+                  <div>
+                    <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+                      Method: {simulateResult.simulation_result.simulation_method} | Qubits: {simulateResult.simulation_result.qubit_count}
+                    </p>
+                    {simulateResult.simulation_result.state_vector?.map((sv, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', fontSize: '0.875rem' }}>
+                        <span style={{ color: '#00d4ff' }}>{sv.state}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <div style={{ width: `${Math.round((sv.probability || 0) * 100)}px`, height: '12px', background: '#7b2ff7', borderRadius: '2px', minWidth: '2px' }} />
+                          <span>{((sv.probability || 0) * 100).toFixed(1)}%</span>
+                        </div>
+                      </div>
+                    ))}
+                    <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.5rem' }}>
+                      Most probable: <span style={{ color: '#00d4ff' }}>{simulateResult.simulation_result.most_probable_state}</span>
+                    </p>
+                    {simulateResult.simulation_result.notes && (
+                      <p style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.25rem' }}>{simulateResult.simulation_result.notes}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Research Paper Q&A Panel */}
+            {featureName === 'research-papers' && showPaperQA && (
+              <div style={{ marginTop: '1rem', padding: '1rem', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                <h4 style={{ color: '#166534', margin: '0 0 0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FiHelpCircle /> Ask a Question About This Paper
+                </h4>
+                <form onSubmit={handlePaperQA}>
+                  <textarea
+                    className="form-input form-textarea"
+                    value={paperQuestion}
+                    onChange={(e) => setPaperQuestion(e.target.value)}
+                    placeholder="e.g. What quantum advantage does this paper claim?"
+                    rows={2}
+                    style={{ marginBottom: '0.5rem' }}
+                  />
+                  <button type="submit" className="btn btn-primary btn-sm" disabled={paperQALoading || !paperQuestion.trim()}>
+                    {paperQALoading ? <span className="btn-loading"><span className="spinner-small" /> Answering...</span> : <><FiZap /> Ask</>}
+                  </button>
+                </form>
+                {paperQAError && <div className="error-banner" style={{ marginTop: '0.5rem' }}>{paperQAError}</div>}
+                {paperQAResult?.answer && (
+                  <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'white', borderRadius: '6px', fontSize: '0.875rem', color: '#374151', whiteSpace: 'pre-wrap' }}>
+                    {paperQAResult.answer}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </Modal>
