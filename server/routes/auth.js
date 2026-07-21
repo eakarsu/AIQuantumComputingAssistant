@@ -17,9 +17,9 @@ router.post('/login', async (req, res) => {
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, name: user.name, role: user.role },
+      { id: user.id, email: user.email, name: user.name, role: user.role, tenantId: process.env.GOVERNANCE_TENANT_ID, subjectIds: [`actor:user:${user.id}`] },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { algorithm: 'HS256', expiresIn: '24h' }
     );
 
     res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
@@ -31,20 +31,27 @@ router.post('/login', async (req, res) => {
 router.post('/register', async (req, res) => {
   try {
     const { email, password, name } = req.body;
+    if (!email || !name || typeof password !== 'string' || password.length < 12) {
+      return res.status(400).json({ error: 'Email, name, and a password of at least 12 characters are required' });
+    }
     const existing = await User.findOne({ where: { email } });
     if (existing) return res.status(400).json({ error: 'Email already registered' });
 
     const user = await User.create({ email, password, name });
     const token = jwt.sign(
-      { id: user.id, email: user.email, name: user.name, role: user.role },
+      { id: user.id, email: user.email, name: user.name, role: user.role, tenantId: process.env.GOVERNANCE_TENANT_ID, subjectIds: [`actor:user:${user.id}`] },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { algorithm: 'HS256', expiresIn: '24h' }
     );
 
     res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+router.get('/me', authMiddleware, (req, res) => {
+  res.json({ user: req.user });
 });
 
 // Get current user profile
@@ -90,6 +97,7 @@ router.put('/profile/password', authMiddleware, async (req, res) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ error: 'Both currentPassword and newPassword are required.' });
     }
+    if (newPassword.length < 12) return res.status(400).json({ error: 'New password must be at least 12 characters.' });
 
     const user = await User.findByPk(req.user.id);
     if (!user) return res.status(404).json({ error: 'User not found' });

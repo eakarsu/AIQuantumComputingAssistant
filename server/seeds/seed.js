@@ -8,13 +8,15 @@ const {
 
 async function seed() {
   try {
+    if (process.env.ALLOW_DESTRUCTIVE_SEED !== '1') throw new Error('Set ALLOW_DESTRUCTIVE_SEED=1 only for an isolated demo database');
+    if ((process.env.SEED_ADMIN_PASSWORD || '').length < 12) throw new Error('SEED_ADMIN_PASSWORD must contain at least 12 characters');
     await sequelize.sync({ force: true });
     console.log('Database synced (tables dropped and recreated).');
 
     // ── User ──
     await User.create({
       email: process.env.DEFAULT_EMAIL || 'admin@quantum.ai',
-      password: process.env.DEFAULT_PASSWORD || 'quantum123',
+      password: process.env.SEED_ADMIN_PASSWORD,
       name: 'Dr. Quantum Admin',
       role: 'admin'
     });
@@ -321,7 +323,7 @@ async function seed() {
     console.log('Learning Resources seeded.');
 
     console.log('\n✅ All seed data created successfully!');
-    console.log('Default login: admin@quantum.ai / quantum123');
+    console.log('Seed admin created; credentials were supplied through the environment.');
     process.exit(0);
   } catch (error) {
     console.error('Seed failed:', error);

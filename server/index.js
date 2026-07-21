@@ -24,6 +24,7 @@ const {
 const app = express();
 const PORT = process.env.SERVER_PORT || 3001;
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3000';
+if ((process.env.JWT_SECRET || '').length < 32 || !process.env.GOVERNANCE_TENANT_ID || !process.env.DATABASE_URL) throw new Error('JWT_SECRET (32+ characters), GOVERNANCE_TENANT_ID, and DATABASE_URL are required');
 
 // Security middleware
 app.use(helmet());
@@ -38,6 +39,15 @@ app.use(express.json({ limit: '10mb' }));
 
 // Rate limiting for all API routes
 app.use('/api', apiRateLimiter);
+
+const generatedRoutesEnabled = process.env.ENABLE_GENERATED_ROUTES === 'true' && process.env.NODE_ENV !== 'production';
+const generatedOnly = (req, res, next) => generatedRoutesEnabled
+  ? next()
+  : res.status(404).json({ error: 'Legacy direct-compute route is quarantined; use the governed workflow' });
+app.use('/api/quantum', generatedOnly);
+app.use('/api/ai', generatedOnly);
+app.use('/api/hardware-profiles/:hwId/transpile/:circuitId', generatedOnly);
+app.use('/api/benchmark-tests/:id/run', generatedOnly);
 
 // Auth routes
 app.use('/api/auth', authRoutes);
@@ -737,14 +747,13 @@ app.get('/api/dashboard/stats', authMiddleware, async (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+app.use('/api/governed-quantum-knowledge', require('./governance'));
+if (generatedRoutesEnabled) app.use('/api/ai/algorithm-tutor', require('./routes/ai-algorithm-tutor'));
 
 async function startServer() {
   try {
     await sequelize.authenticate();
     console.log('Database connected successfully.');
-    await sequelize.sync({ alter: false });
-    console.log('Database synced.');
-
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
@@ -755,21 +764,3 @@ async function startServer() {
 }
 
 startServer();
-
-// AI feature mount: algorithm-tutor
-app.use('/api/ai/algorithm-tutor', require('./routes/ai-algorithm-tutor'));
-// === Batch 07 Gaps & Frontend Mounts ===
-app.use('/api/gap-no-algorithmexplainer-plainenglish-explanati', require('./routes/gap-no-algorithmexplainer-plainenglish-explanati'));
-app.use('/api/gap-no-circuitgenerator-from-problem-description', require('./routes/gap-no-circuitgenerator-from-problem-description'));
-app.use('/api/gap-no-optimizationproblemmapper-classical-quant', require('./routes/gap-no-optimizationproblemmapper-classical-quant'));
-app.use('/api/gap-no-hardwarerecommendation-ibm-ionq-rigetti-r', require('./routes/gap-no-hardwarerecommendation-ibm-ionq-rigetti-r'));
-app.use('/api/gap-no-benchmarkanalysis-across-providers', require('./routes/gap-no-benchmarkanalysis-across-providers'));
-app.use('/api/gap-no-errormitigation-advisor', require('./routes/gap-no-errormitigation-advisor'));
-app.use('/api/gap-no-circuit-diagram-visualizationeditor', require('./routes/gap-no-circuit-diagram-visualizationeditor'));
-app.use('/api/gap-no-quantum-simulator-integration-qiskitcirqb', require('./routes/gap-no-quantum-simulator-integration-qiskitcirqb'));
-app.use('/api/gap-no-educational-courselesson-structure', require('./routes/gap-no-educational-courselesson-structure'));
-app.use('/api/gap-no-benchmarking-framework-or-result-store', require('./routes/gap-no-benchmarking-framework-or-result-store'));
-app.use('/api/gap-no-hardware-provider-accountcredential-mgmt', require('./routes/gap-no-hardware-provider-accountcredential-mgmt'));
-app.use('/api/gap-no-saved-circuits-sharing-or-library', require('./routes/gap-no-saved-circuits-sharing-or-library'));
-app.use('/api/gap-no-notifications-or-rbac', require('./routes/gap-no-notifications-or-rbac'));
-// === End Batch 07 ===
