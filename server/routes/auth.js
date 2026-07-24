@@ -50,8 +50,14 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.get('/me', authMiddleware, (req, res) => {
-  res.json({ user: req.user });
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, { attributes: ['id', 'email', 'name', 'role', 'createdAt'] });
+    if (!user) return res.status(401).json({ error: 'Identity is no longer active' });
+    return res.json({ user });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 });
 
 // Get current user profile

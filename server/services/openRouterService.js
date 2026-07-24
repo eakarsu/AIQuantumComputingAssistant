@@ -1,9 +1,6 @@
 const fetch = require('node-fetch');
 require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
 
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const DEFAULT_MODEL = 'anthropic/claude-3-5-sonnet-20241022';
-
 /**
  * Parse AI JSON response using 3-strategy approach:
  * 1. Direct JSON.parse
@@ -39,19 +36,12 @@ function parseAIJson(text) {
 
 async function queryAI(prompt, context = '', options = {}) {
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const model = options.model || process.env.OPENROUTER_MODEL || DEFAULT_MODEL;
+  const model = options.model || process.env.OPENROUTER_MODEL;
+  const baseUrl = String(process.env.OPENROUTER_BASE_URL || '').replace(/\/$/, '');
 
-  if (!apiKey || apiKey === 'your_openrouter_key_here') {
-    return {
-      success: false,
-      response: 'OpenRouter API key not configured. Please add your key to .env file.',
-      model: model,
-      usage: null
-    };
-  }
+  if (!apiKey || !model || !baseUrl || apiKey === 'your_openrouter_key_here') throw new Error('OpenRouter runtime configuration is required');
 
-  try {
-    const response = await fetch(OPENROUTER_URL, {
+  const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -76,34 +66,15 @@ async function queryAI(prompt, context = '', options = {}) {
       })
     });
 
-    const data = await response.json();
+  if (!response.ok) throw new Error(`OpenRouter request failed with HTTP ${response.status}`);
+  const data = await response.json();
 
-    if (data.error) {
-      return {
-        success: false,
-        response: data.error.message || 'AI service error',
-        model: model,
-        usage: null
-      };
-    }
+  if (data.error) throw new Error(data.error.message || 'AI service error');
 
-    const rawContent = data.choices?.[0]?.message?.content || 'No response generated';
+  const rawContent = String(data.choices?.[0]?.message?.content || '').trim();
+  if (!rawContent) throw new Error('OpenRouter returned empty content');
 
-    return {
-      success: true,
-      response: rawContent,
-      model: data.model || model,
-      usage: data.usage || null,
-      id: data.id
-    };
-  } catch (error) {
-    return {
-      success: false,
-      response: `AI service connection error: ${error.message}`,
-      model: model,
-      usage: null
-    };
-  }
+  return { success: true, response: rawContent, model: data.model || model, usage: data.usage || null, id: data.id };
 }
 
 /**
