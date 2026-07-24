@@ -32,8 +32,8 @@ function LoginPage() {
   };
 
   const handleQuickLogin = async () => {
-    const quickEmail = 'admin@quantum.ai';
-    const quickPassword = 'quantum123';
+    const quickEmail = process.env.REACT_APP_DEMO_EMAIL || '';
+    const quickPassword = process.env.REACT_APP_DEMO_PASSWORD || '';
     setEmail(quickEmail);
     setPassword(quickPassword);
     setError('');
