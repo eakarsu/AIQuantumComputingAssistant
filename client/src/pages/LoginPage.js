@@ -31,28 +31,12 @@ function LoginPage() {
     }
   };
 
-  const handleQuickLogin = async () => {
+  const handleQuickLogin = () => {
     const quickEmail = process.env.REACT_APP_DEMO_EMAIL || '';
     const quickPassword = process.env.REACT_APP_DEMO_PASSWORD || '';
     setEmail(quickEmail);
     setPassword(quickPassword);
     setError('');
-    setLoading(true);
-    try {
-      const response = await login(quickEmail, quickPassword);
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      navigate('/dashboard');
-    } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          err.response?.data?.error ||
-          'Quick login failed. Please try manual login.'
-      );
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -149,7 +133,7 @@ function LoginPage() {
           disabled={loading}
         >
           <FiZap />
-          Quick Login (Demo)
+          Auto Fill Demo Credentials
         </button>
 
         <p className="quick-login-hint">
