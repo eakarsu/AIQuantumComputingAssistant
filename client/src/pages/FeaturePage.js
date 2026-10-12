@@ -1,3 +1,6 @@
+import FormattedAIReport from '../components/FormattedAIReport';
+
+import FullAIExamples, { useFullAIExamples } from "../components/FullAIExamples.jsx";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import {
@@ -347,6 +350,8 @@ function buildBlankForm(fields) {
 }
 
 function FeaturePage() {
+  const fullAIExamples = useFullAIExamples();
+
   const { featureName } = useParams();
   const config = FEATURE_CONFIG[featureName];
   const { addToast } = useToast();
@@ -358,7 +363,7 @@ function FeaturePage() {
 
   // Pagination
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(Number(localStorage.getItem('pageSize')) || 20);
+  const [limit, setLimit] = useState(Math.max(15, Number(localStorage.getItem('pageSize')) || 20));
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -448,6 +453,7 @@ function FeaturePage() {
         setItems([]);
         setTotal(0);
         setTotalPages(1);
+        setFetchError('The record service returned an invalid list response.');
       }
     } catch (err) {
       setFetchError(err.response?.data?.error || 'Failed to load data.');
@@ -1051,13 +1057,13 @@ function FeaturePage() {
           <div className="detail-view">
             <div className="detail-grid">
               {Object.entries(selectedItem)
-                .filter(([k]) => !['updatedAt', 'aiAnalysis'].includes(k))
+                .filter(([k]) => k !== 'updatedAt')
                 .map(([key, value]) => (
                   <div key={key} className={`detail-field ${typeof value === 'string' && value.length > 80 ? 'full-width' : ''}`}>
                     <span className="detail-label">{formatLabel(key)}</span>
-                    <span className="detail-value">
-                      {value === null || value === undefined ? '\u2014' : typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
-                    </span>
+                    <div className="detail-value">
+                      {value === null || value === undefined ? '\u2014' : typeof value === 'object' ? <FormattedAIReport response={value} title={formatLabel(key)} /> : String(value)}
+                    </div>
                   </div>
                 ))}
             </div>
@@ -1126,11 +1132,12 @@ function FeaturePage() {
                 <h4 style={{ color: '#166534', margin: '0 0 0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <FiHelpCircle /> Ask a Question About This Paper
                 </h4>
-                <form onSubmit={handlePaperQA}>
+                <form onSubmit={handlePaperQA} data-full-ai-workspace="PaperQA"><FullAIExamples controller={fullAIExamples} disabled={paperQALoading} />
                   <textarea
                     className="form-input form-textarea"
                     value={paperQuestion}
                     onChange={(e) => setPaperQuestion(e.target.value)}
+                    data-full-ai-field={fullAIExamples.bind({ current: paperQuestion, change: (e) => setPaperQuestion(e.target.value), label: "paperQuestion" }, "PaperQA-question")}
                     placeholder="e.g. What quantum advantage does this paper claim?"
                     rows={2}
                     style={{ marginBottom: '0.5rem' }}
@@ -1142,7 +1149,7 @@ function FeaturePage() {
                 {paperQAError && <div className="error-banner" style={{ marginTop: '0.5rem' }}>{paperQAError}</div>}
                 {paperQAResult?.answer && (
                   <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'white', borderRadius: '6px', fontSize: '0.875rem', color: '#374151', whiteSpace: 'pre-wrap' }}>
-                    {paperQAResult.answer}
+                    <FormattedAIReport response={paperQAResult.answer} title="Paper answer" />
                   </div>
                 )}
               </div>
@@ -1167,9 +1174,9 @@ function FeaturePage() {
       <Modal isOpen={showAIQuery} onClose={() => { setShowAIQuery(false); setAiResponse(null); setAiError(''); setAiQueryText(''); }} title={`AI Query - ${config.label}`} size="large">
         <div className="ai-query-container">
           <p className="ai-query-description">Ask the AI assistant anything about <strong>{config.label}</strong>.</p>
-          <form onSubmit={handleAIQuery} className="ai-query-form">
+          <form onSubmit={handleAIQuery} className="ai-query-form" data-full-ai-workspace="FeaturePage"><FullAIExamples controller={fullAIExamples} disabled={Boolean(loading || aiLoading)} />
             <textarea className="form-input form-textarea ai-query-input" value={aiQueryText} onChange={(e) => setAiQueryText(e.target.value)}
-              placeholder={`e.g. "What are best practices for ${config.label.toLowerCase()}?"`} rows={4} />
+              placeholder={`e.g. "What are best practices for ${config.label.toLowerCase()}?"`} rows={4} data-full-ai-field={fullAIExamples.bind({ current: aiQueryText, change: (e) => setAiQueryText(e.target.value), label: "aiQueryText", manual: false, json: false, sample: '' }, "p1-51712", undefined)} />
             <div className="form-actions">
               <button type="button" className="btn btn-secondary" onClick={() => { setShowAIQuery(false); setAiResponse(null); setAiError(''); }}>Close</button>
               <button type="submit" className="btn btn-ai" disabled={aiLoading || !aiQueryText.trim()}>

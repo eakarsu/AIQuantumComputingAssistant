@@ -1,9 +1,12 @@
+import FormattedAIReport from '../components/FormattedAIReport';
+import FullAIExamples, { useFullAIExamples } from '../components/FullAIExamples';
 import React, { useState } from 'react';
 import { FiBarChart2, FiSend } from 'react-icons/fi';
 import { benchmarkAnalysis } from '../services/api';
 import { useToast } from '../components/Toast';
 
 function BenchmarkAnalysisPage() {
+  const fullAIExamples = useFullAIExamples();
   const { addToast } = useToast();
   const [hardwareFilter, setHardwareFilter] = useState('');
   const [benchmarkResults, setBenchmarkResults] = useState('');
@@ -62,7 +65,7 @@ function BenchmarkAnalysisPage() {
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Compare Quantum Hardware</h2>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-full-ai-workspace="BenchmarkAnalysisPage"><FullAIExamples controller={fullAIExamples} disabled={loading} />
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>
               Hardware filter (optional)
             </label>
@@ -73,7 +76,7 @@ function BenchmarkAnalysisPage() {
               onChange={(e) => setHardwareFilter(e.target.value)}
               placeholder="e.g. IBM"
               style={{ marginBottom: '0.75rem' }}
-            />
+             data-full-ai-field={fullAIExamples.bind({ current: hardwareFilter, change: (e) => setHardwareFilter(e.target.value), label: "hardwareFilter", json: false }, "BenchmarkAnalysisPage-hardwareFilter")} />
 
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>
               Benchmark results (optional JSON; leave blank to use DB)
@@ -85,7 +88,7 @@ function BenchmarkAnalysisPage() {
               placeholder='[{"hardware":"IBM Eagle","metric":"fidelity","value":0.97}]'
               rows={5}
               style={{ marginBottom: '0.75rem', fontFamily: 'monospace', fontSize: '0.8rem' }}
-            />
+             data-full-ai-field={fullAIExamples.bind({ current: benchmarkResults, change: (e) => setBenchmarkResults(e.target.value), label: "benchmarkResults", json: true }, "BenchmarkAnalysisPage-benchmarkResults")} />
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button type="submit" className="btn btn-ai" disabled={loading}>
@@ -172,9 +175,7 @@ function BenchmarkAnalysisPage() {
               </div>
             )}
 
-            {analysis.raw_response && (
-              <pre style={{ background: '#f3f4f6', padding: '0.75rem', borderRadius: 6, fontSize: '0.8rem', whiteSpace: 'pre-wrap' }}>{analysis.raw_response}</pre>
-            )}
+            <FormattedAIReport response={analysis} title="AI analysis" />
           </div>
         )}
       </main>

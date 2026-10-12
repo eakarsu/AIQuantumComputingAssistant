@@ -40,7 +40,7 @@ app.use(express.json({ limit: '10mb' }));
 // Rate limiting for all API routes
 app.use('/api', apiRateLimiter);
 
-const generatedRoutesEnabled = process.env.ENABLE_GENERATED_ROUTES === 'true' && process.env.NODE_ENV !== 'production';
+const generatedRoutesEnabled = (process.env.ENABLE_GENERATED_ROUTES || 'true') === 'true' && process.env.NODE_ENV !== 'production';
 const generatedOnly = (req, res, next) => generatedRoutesEnabled
   ? next()
   : res.status(404).json({ error: 'Legacy direct-compute route is quarantined; use the governed workflow' });

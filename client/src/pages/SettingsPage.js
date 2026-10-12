@@ -22,7 +22,7 @@ function SettingsPage() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
 
   // Preferences
-  const [pageSize, setPageSize] = useState(Number(localStorage.getItem('pageSize')) || 20);
+  const [pageSize, setPageSize] = useState(Math.max(15, Number(localStorage.getItem('pageSize')) || 20));
   const [compactMode, setCompactMode] = useState(localStorage.getItem('compactMode') === 'true');
 
   useEffect(() => {
@@ -227,7 +227,7 @@ function SettingsPage() {
                       </div>
                     </div>
                     <select className="preference-select" value={pageSize} onChange={e => setPageSize(Number(e.target.value))}>
-                      <option value={10}>10</option>
+                      <option value={15}>15</option>
                       <option value={20}>20</option>
                       <option value={50}>50</option>
                       <option value={100}>100</option>

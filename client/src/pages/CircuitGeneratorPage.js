@@ -1,9 +1,12 @@
+import FormattedAIReport from '../components/FormattedAIReport';
+import FullAIExamples, { useFullAIExamples } from '../components/FullAIExamples';
 import React, { useState } from 'react';
 import { FiCpu, FiSend } from 'react-icons/fi';
 import { circuitGenerator } from '../services/api';
 import { useToast } from '../components/Toast';
 
 function CircuitGeneratorPage() {
+  const fullAIExamples = useFullAIExamples();
   const { addToast } = useToast();
   const [problem, setProblem] = useState('');
   const [qubitCount, setQubitCount] = useState('');
@@ -57,7 +60,7 @@ function CircuitGeneratorPage() {
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Generate an OpenQASM Circuit</h2>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-full-ai-workspace="CircuitGeneratorPage"><FullAIExamples controller={fullAIExamples} disabled={loading} />
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>
               Problem description
             </label>
@@ -68,20 +71,21 @@ function CircuitGeneratorPage() {
               placeholder="e.g. 3-qubit GHZ state preparation; or a 2-qubit Grover search over {00,01,10,11} with marked state |11>"
               rows={4}
               style={{ marginBottom: '0.75rem' }}
+              data-full-ai-field={fullAIExamples.bind({ current: problem, change: (e) => setProblem(e.target.value), label: "problem", json: false }, "CircuitGeneratorPage-problem")}
             />
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>Qubit count</label>
-                <input className="form-input" type="number" min={1} value={qubitCount} onChange={(e) => setQubitCount(e.target.value)} placeholder="auto" />
+                <input className="form-input" type="number" min={1} value={qubitCount} onChange={(e) => setQubitCount(e.target.value)} placeholder="auto"  data-full-ai-field={fullAIExamples.bind({ current: qubitCount, change: (e) => setQubitCount(e.target.value), label: "qubitCount", json: false }, "CircuitGeneratorPage-qubitCount")} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>Target hardware</label>
-                <input className="form-input" type="text" value={hardware} onChange={(e) => setHardware(e.target.value)} placeholder="e.g. IBM Eagle" />
+                <input className="form-input" type="text" value={hardware} onChange={(e) => setHardware(e.target.value)} placeholder="e.g. IBM Eagle"  data-full-ai-field={fullAIExamples.bind({ current: hardware, change: (e) => setHardware(e.target.value), label: "hardware", json: false }, "CircuitGeneratorPage-hardware")} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>Gate set</label>
-                <input className="form-input" type="text" value={gateSet} onChange={(e) => setGateSet(e.target.value)} placeholder="e.g. h, cx, rz, ry" />
+                <input className="form-input" type="text" value={gateSet} onChange={(e) => setGateSet(e.target.value)} placeholder="e.g. h, cx, rz, ry"  data-full-ai-field={fullAIExamples.bind({ current: gateSet, change: (e) => setGateSet(e.target.value), label: "gateSet", json: false }, "CircuitGeneratorPage-gateSet")} />
               </div>
             </div>
 
@@ -130,7 +134,7 @@ function CircuitGeneratorPage() {
             {circuit.gate_summary && (
               <div style={{ marginBottom: '1rem' }}>
                 <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#7b2ff7' }}>Gate summary</div>
-                <pre style={{ background: '#f3f4f6', padding: '0.5rem', borderRadius: 6, fontSize: '0.8rem' }}>{JSON.stringify(circuit.gate_summary, null, 2)}</pre>
+                <FormattedAIReport response={circuit.gate_summary} title="Gate summary" />
               </div>
             )}
 
@@ -155,9 +159,7 @@ function CircuitGeneratorPage() {
               </div>
             )}
 
-            {circuit.raw_response && (
-              <pre style={{ background: '#f3f4f6', padding: '0.75rem', borderRadius: 6, fontSize: '0.8rem', whiteSpace: 'pre-wrap' }}>{circuit.raw_response}</pre>
-            )}
+            <FormattedAIReport response={circuit} title="AI analysis" />
           </div>
         )}
       </main>

@@ -1,3 +1,6 @@
+import FormattedAIReport from '../components/FormattedAIReport';
+
+import FullAIExamples, { useFullAIExamples } from "../components/FullAIExamples.jsx";
 import React, { useState, useEffect } from 'react';
 import { FiServer, FiCpu, FiZap, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { getFiltered, transpileCircuit } from '../services/api';
@@ -5,6 +8,8 @@ import AIResponsePanel from '../components/AIResponsePanel';
 import { useToast } from '../components/Toast';
 
 function HardwareTranspilerPage() {
+  const fullAIExamples = useFullAIExamples();
+
   const { addToast } = useToast();
   const [hardwareProfiles, setHardwareProfiles] = useState([]);
   const [circuits, setCircuits] = useState([]);
@@ -22,8 +27,11 @@ function HardwareTranspilerPage() {
           getFiltered('hardware-profiles', { limit: 100 }),
           getFiltered('circuit-designs', { limit: 100 }),
         ]);
-        setHardwareProfiles(hwRes.data?.data || []);
-        setCircuits(circRes.data?.data || []);
+        const hardware = hwRes.data?.data;
+        const designs = circRes.data?.data;
+        if (!Array.isArray(hardware) || !Array.isArray(designs)) throw new Error('Invalid record list response');
+        setHardwareProfiles(hardware);
+        setCircuits(designs);
       } catch (err) {
         addToast('Failed to load data', 'error');
       } finally {
@@ -77,7 +85,7 @@ function HardwareTranspilerPage() {
                 <FiServer style={{ color: '#9945ff' }} /> Configure Transpilation
               </h2>
 
-              <form onSubmit={handleTranspile}>
+              <form onSubmit={handleTranspile} data-full-ai-workspace="HardwareTranspilerPage"><FullAIExamples controller={fullAIExamples} disabled={Boolean(loading)} />
                 <div className="form-group" style={{ marginBottom: '1rem' }}>
                   <label className="form-label">
                     <FiServer style={{ marginRight: '0.25rem' }} /> Target Hardware
@@ -86,7 +94,7 @@ function HardwareTranspilerPage() {
                     className="form-input form-select"
                     value={selectedHardware}
                     onChange={(e) => setSelectedHardware(e.target.value)}
-                    disabled={fetchLoading}
+                    disabled={fetchLoading} data-full-ai-field={fullAIExamples.bind({ current: selectedHardware, change: (e) => setSelectedHardware(e.target.value), label: "selectedHardware", manual: false, json: false, sample: '' }, "p1-3105", undefined)}
                   >
                     <option value="">Select hardware profile...</option>
                     {hardwareProfiles.map(hw => (
@@ -105,7 +113,7 @@ function HardwareTranspilerPage() {
                     className="form-input form-select"
                     value={selectedCircuit}
                     onChange={(e) => setSelectedCircuit(e.target.value)}
-                    disabled={fetchLoading}
+                    disabled={fetchLoading} data-full-ai-field={fullAIExamples.bind({ current: selectedCircuit, change: (e) => setSelectedCircuit(e.target.value), label: "selectedCircuit", manual: false, json: false, sample: '' }, "p1-3978", undefined)}
                   >
                     <option value="">Select circuit design...</option>
                     {circuits.map(c => (
@@ -147,6 +155,7 @@ function HardwareTranspilerPage() {
 
             {result && analysis && (
               <div>
+                <FormattedAIReport response={analysis} title="Transpiler analysis" />
                 {/* Summary Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
                   <div className="card" style={{ padding: '1rem', textAlign: 'center' }}>

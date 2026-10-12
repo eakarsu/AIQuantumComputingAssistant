@@ -1,3 +1,4 @@
+import FormattedAIReport from '../components/FormattedAIReport';
 // // === Batch 07 Gaps & Frontend Mounts ===
 import React, { useState } from 'react';
 
@@ -8,18 +9,9 @@ export default function GapNoSavedCircuitsSharingOrLibrary() {
   const [error, setError] = useState(null);
 
   const sampleRequests = [
-      {
-          "label": "Scenario",
-          "value": "Run No saved circuits, sharing, or library for a realistic customer case.\nContext: a team needs a practical recommendation based on incomplete operating data.\nGoal: identify the best action, key risks, missing information, and expected business impact.\nReturn: summary, prioritized action plan, assumptions, and follow-up questions."
-      },
-      {
-          "label": "Data sample",
-          "value": "Analyze this No saved circuits, sharing, or library data sample.\nInput records:\n- Record 1: urgent, customer impact high, owner unassigned\n- Record 2: medium priority, blocked by missing data\n- Record 3: recurring issue, automation opportunity\nReturn structured findings, anomalies, recommendations, and confidence."
-      },
-      {
-          "label": "Executive review",
-          "value": "Prepare an executive review for No saved circuits, sharing, or library.\nAudience: business owner, operations lead, and implementation team.\nInclude impact, risk, estimated effort, decision points, and a concise next-step plan."
-      }
+    { label: "Scenario", value: "Quantum workflow scenario: organize and share a saved three-qubit GHZ circuit with revision notes. State the assumptions, expected output, verification steps and missing prerequisites." },
+    { label: "Data sample", value: "Analyze a controlled sample to organize and share a saved three-qubit GHZ circuit with revision notes. Measurements: 1,024 shots; baseline success rate 0.82; target 0.90; two-qubit gate error 0.012. Give a structured comparison, uncertainty and next experiments." },
+    { label: "Technical review", value: "Prepare a technical review to organize and share a saved three-qubit GHZ circuit with revision notes. Compare two viable approaches, list hardware or software constraints, and recommend a reproducible validation plan." }
   ];
 
   const applySampleRequest = (value) => {
@@ -83,9 +75,7 @@ export default function GapNoSavedCircuitsSharingOrLibrary() {
         <div style={{ marginTop: 16, padding: 12, background: '#fee', color: '#900', borderRadius: 6 }}>{error}</div>
       )}
       {output && (
-        <pre style={{ marginTop: 16, padding: 12, background: '#f7f7f7', borderRadius: 6, overflow: 'auto', maxHeight: 480 }}>
-{JSON.stringify(output, null, 2)}
-        </pre>
+        <FormattedAIReport response={output} />
       )}
     </div>
   );

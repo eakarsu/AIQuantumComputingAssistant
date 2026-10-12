@@ -19,7 +19,7 @@ function Pagination({ page, totalPages, total, limit, onPageChange, onLimitChang
       </div>
       <div className="pagination-controls">
         <select className="pagination-limit" value={limit} onChange={(e) => onLimitChange(Number(e.target.value))}>
-          {[10, 20, 50, 100].map(n => <option key={n} value={n}>{n} / page</option>)}
+          {[15, 20, 50, 100].map(n => <option key={n} value={n}>{n} / page</option>)}
         </select>
         <button className="pagination-btn" disabled={page <= 1} onClick={() => onPageChange(1)} title="First"><FiChevronsLeft /></button>
         <button className="pagination-btn" disabled={page <= 1} onClick={() => onPageChange(page - 1)} title="Previous"><FiChevronLeft /></button>

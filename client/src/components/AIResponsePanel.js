@@ -1,5 +1,5 @@
+import FormattedAIReport from './FormattedAIReport';
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
 import { FiZap, FiCpu, FiClock, FiHash } from 'react-icons/fi';
 
 function AIResponsePanel({ response, loading, error }) {
@@ -35,9 +35,9 @@ function AIResponsePanel({ response, loading, error }) {
     );
   }
 
-  if (!response) return null;
+  if (response === null || response === undefined) return null;
 
-  const aiText = response.response || response.aiResult?.response || '';
+  const aiText = response?.response ?? response?.aiResult?.response ?? response;
   const model = response.model || response.aiResult?.model || '';
   const usage = response.usage || response.aiResult?.usage;
   const success = response.success !== undefined ? response.success : response.aiResult?.success;
@@ -71,7 +71,7 @@ function AIResponsePanel({ response, loading, error }) {
       </div>
       <div className="ai-panel-body">
         <div className="ai-markdown-content">
-          <ReactMarkdown>{aiText}</ReactMarkdown>
+          <FormattedAIReport response={aiText} title="AI analysis" model={model} tokens={usage} />
         </div>
       </div>
     </div>

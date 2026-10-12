@@ -1,3 +1,5 @@
+import FormattedAIReport from '../components/FormattedAIReport';
+import FullAIExamples, { useFullAIExamples } from '../components/FullAIExamples';
 import React, { useState } from 'react';
 import { FiTrendingUp, FiSend } from 'react-icons/fi';
 import { optimizationProblemMapper } from '../services/api';
@@ -13,6 +15,7 @@ function Section({ title, children }) {
 }
 
 function OptimizationProblemMapperPage() {
+  const fullAIExamples = useFullAIExamples();
   const { addToast } = useToast();
   const [problem, setProblem] = useState('');
   const [mapping, setMapping] = useState(null);
@@ -57,7 +60,7 @@ function OptimizationProblemMapperPage() {
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Map a classical optimization problem to a quantum approach</h2>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-full-ai-workspace="OptimizationProblemMapperPage"><FullAIExamples controller={fullAIExamples} disabled={loading} />
             <textarea
               className="form-input form-textarea"
               value={problem}
@@ -65,7 +68,7 @@ function OptimizationProblemMapperPage() {
               placeholder="Describe your optimization problem (e.g. minimize total tour length over 50 cities given distance matrix)..."
               rows={6}
               style={{ marginBottom: '1rem' }}
-            />
+             data-full-ai-field={fullAIExamples.bind({ current: problem, change: (e) => setProblem(e.target.value), label: "problem", json: false }, "OptimizationProblemMapperPage-problem")} />
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button type="submit" className="btn btn-ai" disabled={loading || !problem.trim()}>
                 {loading ? (
@@ -140,11 +143,7 @@ function OptimizationProblemMapperPage() {
                 </ul>
               </Section>
             )}
-            {mapping.raw_response && (
-              <Section title="Raw Response">
-                <pre style={{ background: '#f3f4f6', padding: '0.75rem', borderRadius: 6, fontSize: '0.8rem', whiteSpace: 'pre-wrap' }}>{mapping.raw_response}</pre>
-              </Section>
-            )}
+            <FormattedAIReport response={mapping} title="AI analysis" />
           </div>
         )}
       </main>

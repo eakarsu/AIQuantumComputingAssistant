@@ -1,3 +1,4 @@
+import FullAIExamples, { useFullAIExamples } from '../components/FullAIExamples';
 import React, { useState } from 'react';
 import { FiBook, FiSend, FiCpu } from 'react-icons/fi';
 import { algorithmExplainer } from '../services/api';
@@ -13,6 +14,7 @@ const EXAMPLES = [
 ];
 
 function AlgorithmExplainerPage() {
+  const fullAIExamples = useFullAIExamples();
   const { addToast } = useToast();
   const [algorithm, setAlgorithm] = useState('');
   const [audienceLevel, setAudienceLevel] = useState('intermediate');
@@ -62,7 +64,7 @@ function AlgorithmExplainerPage() {
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Explain a Quantum Algorithm</h2>
               </div>
 
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} data-full-ai-workspace="AlgorithmExplainerPage"><FullAIExamples controller={fullAIExamples} disabled={loading} />
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>
                   Algorithm name or description
                 </label>
@@ -73,7 +75,7 @@ function AlgorithmExplainerPage() {
                   placeholder="e.g. Shor's algorithm, or describe a method..."
                   rows={3}
                   style={{ marginBottom: '0.75rem' }}
-                />
+                 data-full-ai-field={fullAIExamples.bind({ current: algorithm, change: (e) => setAlgorithm(e.target.value), label: "algorithm", json: false }, "AlgorithmExplainerPage-algorithm")} />
 
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>
                   Audience level
@@ -83,7 +85,7 @@ function AlgorithmExplainerPage() {
                   value={audienceLevel}
                   onChange={(e) => setAudienceLevel(e.target.value)}
                   style={{ marginBottom: '1rem' }}
-                >
+                 data-full-ai-field={fullAIExamples.bind({ current: audienceLevel, change: (e) => setAudienceLevel(e.target.value), label: "audienceLevel", json: false }, "AlgorithmExplainerPage-audienceLevel")}>
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
                   <option value="advanced">Advanced</option>

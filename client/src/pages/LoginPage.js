@@ -34,6 +34,10 @@ function LoginPage() {
   const handleQuickLogin = () => {
     const quickEmail = process.env.REACT_APP_DEMO_EMAIL || '';
     const quickPassword = process.env.REACT_APP_DEMO_PASSWORD || '';
+    if (!quickEmail || !quickPassword) {
+      setError('Demo credentials are not configured for this build.');
+      return;
+    }
     setEmail(quickEmail);
     setPassword(quickPassword);
     setError('');
@@ -133,11 +137,11 @@ function LoginPage() {
           disabled={loading}
         >
           <FiZap />
-          Auto Fill Demo Credentials
+          Fill Demo Credentials
         </button>
 
         <p className="quick-login-hint">
-          Uses admin@quantum.ai / quantum123
+          {process.env.REACT_APP_DEMO_EMAIL && process.env.REACT_APP_DEMO_PASSWORD ? "Fills the configured demo account; use Sign In to log in." : "Demo credentials are not configured for this build."}
         </p>
 
         {/* Footer */}

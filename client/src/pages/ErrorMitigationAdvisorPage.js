@@ -1,9 +1,12 @@
+import FormattedAIReport from '../components/FormattedAIReport';
+import FullAIExamples, { useFullAIExamples } from '../components/FullAIExamples';
 import React, { useState } from 'react';
 import { FiShield, FiSend } from 'react-icons/fi';
 import { errorMitigationAdvisor } from '../services/api';
 import { useToast } from '../components/Toast';
 
 function ErrorMitigationAdvisorPage() {
+  const fullAIExamples = useFullAIExamples();
   const { addToast } = useToast();
   const [circuit, setCircuit] = useState('');
   const [hardware, setHardware] = useState('');
@@ -70,7 +73,7 @@ function ErrorMitigationAdvisorPage() {
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Recommend Error-Mitigation Strategies</h2>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-full-ai-workspace="ErrorMitigationAdvisorPage"><FullAIExamples controller={fullAIExamples} disabled={loading} />
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>
               Circuit description
             </label>
@@ -81,16 +84,16 @@ function ErrorMitigationAdvisorPage() {
               placeholder="e.g. 5-qubit VQE ansatz, 30 layers, CNOT-heavy on linear topology"
               rows={4}
               style={{ marginBottom: '0.75rem' }}
-            />
+             data-full-ai-field={fullAIExamples.bind({ current: circuit, change: (e) => setCircuit(e.target.value), label: "circuit", json: false }, "ErrorMitigationAdvisorPage-circuit")} />
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>Hardware</label>
-                <input className="form-input" type="text" value={hardware} onChange={(e) => setHardware(e.target.value)} placeholder="e.g. IBM Eagle" />
+                <input className="form-input" type="text" value={hardware} onChange={(e) => setHardware(e.target.value)} placeholder="e.g. IBM Eagle"  data-full-ai-field={fullAIExamples.bind({ current: hardware, change: (e) => setHardware(e.target.value), label: "hardware", json: false }, "ErrorMitigationAdvisorPage-hardware")} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>Target fidelity</label>
-                <input className="form-input" type="text" value={targetFidelity} onChange={(e) => setTargetFidelity(e.target.value)} placeholder="e.g. 0.99" />
+                <input className="form-input" type="text" value={targetFidelity} onChange={(e) => setTargetFidelity(e.target.value)} placeholder="e.g. 0.99"  data-full-ai-field={fullAIExamples.bind({ current: targetFidelity, change: (e) => setTargetFidelity(e.target.value), label: "targetFidelity", json: false }, "ErrorMitigationAdvisorPage-targetFidelity")} />
               </div>
             </div>
 
@@ -104,7 +107,7 @@ function ErrorMitigationAdvisorPage() {
               placeholder='{"T1_us":120,"T2_us":80,"single_qubit_error":0.001,"two_qubit_error":0.01}'
               rows={3}
               style={{ marginBottom: '0.75rem', fontFamily: 'monospace', fontSize: '0.8rem' }}
-            />
+             data-full-ai-field={fullAIExamples.bind({ current: noiseProfile, change: (e) => setNoiseProfile(e.target.value), label: "noiseProfile", json: true }, "ErrorMitigationAdvisorPage-noiseProfile")} />
 
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button type="submit" className="btn btn-ai" disabled={loading || !circuit.trim()}>
@@ -190,9 +193,7 @@ function ErrorMitigationAdvisorPage() {
               </div>
             )}
 
-            {advice.raw_response && (
-              <pre style={{ background: '#f3f4f6', padding: '0.75rem', borderRadius: 6, fontSize: '0.8rem', whiteSpace: 'pre-wrap' }}>{advice.raw_response}</pre>
-            )}
+            <FormattedAIReport response={advice} title="AI analysis" />
           </div>
         )}
       </main>

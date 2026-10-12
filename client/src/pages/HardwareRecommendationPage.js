@@ -1,9 +1,12 @@
+import FormattedAIReport from '../components/FormattedAIReport';
+import FullAIExamples, { useFullAIExamples } from '../components/FullAIExamples';
 import React, { useState } from 'react';
 import { FiServer, FiSend } from 'react-icons/fi';
 import { hardwareRecommendation } from '../services/api';
 import { useToast } from '../components/Toast';
 
 function HardwareRecommendationPage() {
+  const fullAIExamples = useFullAIExamples();
   const { addToast } = useToast();
   const [algorithm, setAlgorithm] = useState('');
   const [qubitCount, setQubitCount] = useState('');
@@ -56,7 +59,7 @@ function HardwareRecommendationPage() {
             <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Recommend hardware for an algorithm</h2>
           </div>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-full-ai-workspace="HardwareRecommendationPage"><FullAIExamples controller={fullAIExamples} disabled={loading} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>
@@ -68,7 +71,7 @@ function HardwareRecommendationPage() {
                   value={algorithm}
                   onChange={(e) => setAlgorithm(e.target.value)}
                   placeholder="e.g. Shor's algorithm, VQE for H2 molecule..."
-                />
+                 data-full-ai-field={fullAIExamples.bind({ current: algorithm, change: (e) => setAlgorithm(e.target.value), label: "algorithm", json: false }, "HardwareRecommendationPage-algorithm")} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
@@ -83,7 +86,7 @@ function HardwareRecommendationPage() {
                     onChange={(e) => setQubitCount(e.target.value)}
                     min={1}
                     placeholder="e.g. 50"
-                  />
+                   data-full-ai-field={fullAIExamples.bind({ current: qubitCount, change: (e) => setQubitCount(e.target.value), label: "qubitCount", json: false }, "HardwareRecommendationPage-qubitCount")} />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>
@@ -96,7 +99,7 @@ function HardwareRecommendationPage() {
                     onChange={(e) => setDepth(e.target.value)}
                     min={1}
                     placeholder="e.g. 200"
-                  />
+                   data-full-ai-field={fullAIExamples.bind({ current: depth, change: (e) => setDepth(e.target.value), label: "depth", json: false }, "HardwareRecommendationPage-depth")} />
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 500, marginBottom: '0.35rem', color: '#374151' }}>
@@ -106,7 +109,7 @@ function HardwareRecommendationPage() {
                     className="form-input"
                     value={priority}
                     onChange={(e) => setPriority(e.target.value)}
-                  >
+                   data-full-ai-field={fullAIExamples.bind({ current: priority, change: (e) => setPriority(e.target.value), label: "priority", json: false }, "HardwareRecommendationPage-priority")}>
                     <option value="fidelity">Fidelity</option>
                     <option value="speed">Speed</option>
                     <option value="cost">Cost</option>
@@ -207,9 +210,7 @@ function HardwareRecommendationPage() {
               </div>
             )}
 
-            {recommendation.raw_response && (
-              <pre style={{ background: '#f3f4f6', padding: '0.75rem', borderRadius: 6, fontSize: '0.8rem', whiteSpace: 'pre-wrap' }}>{recommendation.raw_response}</pre>
-            )}
+            <FormattedAIReport response={recommendation} title="AI analysis" />
           </div>
         )}
       </main>

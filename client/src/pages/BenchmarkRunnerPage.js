@@ -1,3 +1,4 @@
+import FormattedAIReport from '../components/FormattedAIReport';
 import React, { useState, useEffect } from 'react';
 import { FiBarChart2, FiPlay, FiZap, FiTrendingUp, FiCheckCircle } from 'react-icons/fi';
 import { getFiltered, runBenchmark } from '../services/api';
@@ -15,7 +16,9 @@ function BenchmarkRunnerPage() {
     const fetchBenchmarks = async () => {
       try {
         const res = await getFiltered('benchmark-tests', { limit: 100 });
-        setBenchmarks(res.data?.data || []);
+        const rows = res.data?.data;
+        if (!Array.isArray(rows)) throw new Error('Invalid benchmark list response');
+        setBenchmarks(rows);
       } catch (err) {
         addToast('Failed to load benchmarks', 'error');
       } finally {
@@ -110,6 +113,7 @@ function BenchmarkRunnerPage() {
 
                     {analysis && !result.error && (
                       <div style={{ marginTop: '0.75rem', borderTop: '1px solid #f0f0f0', paddingTop: '0.75rem' }}>
+                        <FormattedAIReport response={analysis} title="Benchmark result" />
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: '0.75rem' }}>
                           <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f9fafb', borderRadius: '8px' }}>
                             <p style={{ fontSize: '0.7rem', color: '#888', margin: '0 0 0.15rem' }}>Grade</p>
@@ -120,7 +124,7 @@ function BenchmarkRunnerPage() {
                           <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f9fafb', borderRadius: '8px' }}>
                             <p style={{ fontSize: '0.7rem', color: '#888', margin: '0 0 0.15rem' }}>Score</p>
                             <p style={{ fontSize: '1.25rem', fontWeight: 700, color: '#7b2ff7', margin: 0 }}>
-                              {analysis.overall_score || 'N/A'}
+                              {analysis.overall_score ?? 'N/A'}
                             </p>
                           </div>
                           <div style={{ textAlign: 'center', padding: '0.5rem', background: '#f9fafb', borderRadius: '8px' }}>

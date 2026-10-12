@@ -1,3 +1,4 @@
+import FormattedAIReport from '../components/FormattedAIReport';
 // // === Batch 07 Gaps & Frontend Mounts ===
 import React, { useState } from 'react';
 
@@ -8,18 +9,9 @@ export default function GapNoCircuitgeneratorFromProblemDescription() {
   const [error, setError] = useState(null);
 
   const sampleRequests = [
-      {
-          "label": "Scenario",
-          "value": "Run No /circuit-generator from problem description for a realistic customer case.\nContext: a team needs a practical recommendation based on incomplete operating data.\nGoal: identify the best action, key risks, missing information, and expected business impact.\nReturn: summary, prioritized action plan, assumptions, and follow-up questions."
-      },
-      {
-          "label": "Data sample",
-          "value": "Analyze this No /circuit-generator from problem description data sample.\nInput records:\n- Record 1: urgent, customer impact high, owner unassigned\n- Record 2: medium priority, blocked by missing data\n- Record 3: recurring issue, automation opportunity\nReturn structured findings, anomalies, recommendations, and confidence."
-      },
-      {
-          "label": "Executive review",
-          "value": "Prepare an executive review for No /circuit-generator from problem description.\nAudience: business owner, operations lead, and implementation team.\nInclude impact, risk, estimated effort, decision points, and a concise next-step plan."
-      }
+    { label: "Scenario", value: "Quantum workflow scenario: create a four-qubit Grover circuit for one marked bit string. State the assumptions, expected output, verification steps and missing prerequisites." },
+    { label: "Data sample", value: "Analyze a controlled sample to create a four-qubit Grover circuit for one marked bit string. Measurements: 1,024 shots; baseline success rate 0.82; target 0.90; two-qubit gate error 0.012. Give a structured comparison, uncertainty and next experiments." },
+    { label: "Technical review", value: "Prepare a technical review to create a four-qubit Grover circuit for one marked bit string. Compare two viable approaches, list hardware or software constraints, and recommend a reproducible validation plan." }
   ];
 
   const applySampleRequest = (value) => {
@@ -83,9 +75,7 @@ export default function GapNoCircuitgeneratorFromProblemDescription() {
         <div style={{ marginTop: 16, padding: 12, background: '#fee', color: '#900', borderRadius: 6 }}>{error}</div>
       )}
       {output && (
-        <pre style={{ marginTop: 16, padding: 12, background: '#f7f7f7', borderRadius: 6, overflow: 'auto', maxHeight: 480 }}>
-{JSON.stringify(output, null, 2)}
-        </pre>
+        <FormattedAIReport response={output} />
       )}
     </div>
   );

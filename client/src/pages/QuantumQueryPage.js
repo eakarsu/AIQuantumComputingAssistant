@@ -1,3 +1,4 @@
+import FullAIExamples, { useFullAIExamples } from '../components/FullAIExamples';
 import React, { useState } from 'react';
 import { FiZap, FiSend, FiCpu, FiBook } from 'react-icons/fi';
 import { quantumQuery } from '../services/api';
@@ -13,6 +14,7 @@ const EXAMPLE_QUESTIONS = [
 ];
 
 function QuantumQueryPage() {
+  const fullAIExamples = useFullAIExamples();
   const { addToast } = useToast();
   const [question, setQuestion] = useState('');
   const [includeContext, setIncludeContext] = useState(false);
@@ -67,7 +69,7 @@ function QuantumQueryPage() {
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Ask the Quantum AI</h2>
               </div>
 
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} data-full-ai-workspace="QuantumQueryPage"><FullAIExamples controller={fullAIExamples} disabled={loading} />
                 <textarea
                   className="form-input form-textarea"
                   value={question}
@@ -75,7 +77,7 @@ function QuantumQueryPage() {
                   placeholder="Ask any quantum computing question..."
                   rows={4}
                   style={{ marginBottom: '0.75rem' }}
-                />
+                 data-full-ai-field={fullAIExamples.bind({ current: question, change: (e) => setQuestion(e.target.value), label: "question", json: false }, "QuantumQueryPage-question")} />
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer' }}>
@@ -83,7 +85,7 @@ function QuantumQueryPage() {
                       type="checkbox"
                       checked={includeContext}
                       onChange={(e) => setIncludeContext(e.target.checked)}
-                    />
+                     data-full-ai-field={fullAIExamples.bind({ current: includeContext, change: (e) => setIncludeContext(e.target.checked), label: "includeContext", json: false }, "QuantumQueryPage-includeContext")} />
                     Include platform context (circuit/hardware stats)
                   </label>
                 </div>
