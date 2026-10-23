@@ -748,6 +748,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 app.use('/api/governed-quantum-knowledge', require('./governance'));
+app.use('/api/feature-pack', require('./routes/featurePack'));
 if (generatedRoutesEnabled) app.use('/api/ai/algorithm-tutor', require('./routes/ai-algorithm-tutor'));
 
 async function startServer() {
